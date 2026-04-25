@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExamSlot — Book Your Exam</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── CSS Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage:    #b5c4b1;
+      --blush:   #e8d5c4;
+      --cream:   #f7f3ee;
+      --stone:   #d6cec4;
+      --ink:     #2c2825;
+      --muted:   #7a726b;
+      --accent:  #8a7968;
+      --danger:  #c0614a;
+      --success: #5a8a6f;
+      --glass:   rgba(255,255,255,0.55);
+      --glass-b: rgba(255,255,255,0.25);
+      --shadow:  0 8px 40px rgba(44,40,37,0.12);
+      --shadow-sm: 0 2px 12px rgba(44,40,37,0.08);
+      --radius:  20px;
+      --radius-sm: 12px;
+      --trans:   all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── Base ── */
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ── */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(181,196,177,0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 15% 80%, rgba(232,213,196,0.4) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(214,206,196,0.2) 0%, transparent 70%),
+        var(--cream);
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      animation: drift 12s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+    .bg-orb-1 { width: 400px; height: 400px; background: var(--sage); top: -100px; right: -80px; animation-delay: 0s; }
+    .bg-orb-2 { width: 300px; height: 300px; background: var(--blush); bottom: -80px; left: -60px; animation-delay: -4s; }
+    .bg-orb-3 { width: 250px; height: 250px; background: var(--stone); top: 40%; left: 30%; animation-delay: -8s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, -20px) scale(1.05); }
+    }
+
+    /* ── Layout ── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--glass);
+      border: 1px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(10px);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 0.6rem;
+    }
+
+    .header h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .header p {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 300;
+      max-width: 380px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius);
+      padding: 2.5rem 2.25rem;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.75rem 1.25rem; }
+    }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.1rem;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    @media (max-width: 520px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap .ico {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--stone);
+      font-size: 14px;
+      pointer-events: none;
+      transition: color 0.25s;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 13px 14px 13px 40px;
+      background: rgba(255,255,255,0.6);
+      border: 1.5px solid var(--stone);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+      transition: var(--trans);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a726b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 0 0 4px rgba(138,121,104,0.12);
+    }
+
+    .field input:focus ~ .ico,
+    .field select:focus ~ .ico,
+    .input-wrap:focus-within .ico { color: var(--accent); }
+
+    .field input.error,
+    .field select.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(192,97,74,0.1);
+    }
+
+    /* Time Slots */
+    .slots-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .slot-btn {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .slot-btn input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slot-btn span {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 10px;
+      background: rgba(255,255,255,0.55);
+      border: 1.5px solid var(--stone);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: var(--trans);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .slot-btn span i { font-size: 18px; }
+
+    .slot-btn input:checked + span {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--cream);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .slot-btn span:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(255,255,255,0.8);
+    }
+
+    .slot-btn input:checked + span:hover {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: var(--trans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(44,40,37,0.2);
+    }
+
+    .btn-submit:active { transform: translateY(0); }
+
+    /* ── Toast / Alert Messages ── */
+    .toast {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      border: 1px solid;
+      max-width: 340px;
+      animation: slideIn 0.4s cubic-bezier(0.4,0,0.2,1) both;
+      pointer-events: none;
+    }
+
+    .toast.success {
+      background: rgba(90,138,111,0.15);
+      border-color: rgba(90,138,111,0.35);
+      color: #2e5c40;
+    }
+
+    .toast.error {
+      background: rgba(192,97,74,0.13);
+      border-color: rgba(192,97,74,0.35);
+      color: #8b3a27;
+    }
+
+    .toast.hide { animation: slideOut 0.35s ease forwards; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(60px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(60px); }
+    }
+
+    /* Inline field errors */
+    .field-err {
+      font-size: 12px;
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 3px;
+      animation: fadeUp 0.2s ease;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 2.5rem 0 1.5rem;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--stone);
+    }
+
+    .divider span {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Bookings List ── */
+    #bookings-section { animation: fadeUp 0.7s 0.25s ease both; }
+
+    .bookings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .bookings-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+
+    .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.35; display: block; }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+
+    /* Booking Card */
+    .booking-item {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: var(--radius-sm);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--trans);
+      animation: fadeUp 0.4s ease both;
+      margin-bottom: 0.8rem;
+    }
+
+    .booking-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+    .booking-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .booking-icon.java    { background: rgba(232,213,196,0.6); color: #8a6a45; }
+    .booking-icon.python  { background: rgba(181,196,177,0.6); color: #456a50; }
+    .booking-icon.web     { background: rgba(181,186,214,0.6); color: #454a8a; }
+    .booking-icon.ds      { background: rgba(214,181,214,0.6); color: #6e458a; }
+    .booking-icon.db      { background: rgba(214,196,181,0.6); color: #8a5f45; }
+    .booking-icon.default { background: rgba(214,206,196,0.5); color: var(--muted); }
+
+    .booking-info { flex: 1; min-width: 0; }
+
+    .booking-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .booking-exam {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .booking-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .booking-meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .booking-meta i { font-size: 10px; }
+
+    .btn-delete {
+      background: transparent;
+      border: 1.5px solid var(--stone);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      transition: var(--trans);
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    .btn-delete:hover {
+      background: rgba(192,97,74,0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+      transform: scale(1.1);
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--stone); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-canvas"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <!-- Toast Container -->
+  <div id="toast" class="toast" style="display:none"></div>
+
+  <div class="wrapper">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-badge"><i class="fa-solid fa-graduation-cap"></i> Online Exam Portal</div>
+      <h1>Book Your <em>Exam Slot</em></h1>
+      <p>Reserve a seat in minutes. Pick your course, choose a date, and confirm your time.</p>
+    </header>
+
+    <!-- Booking Form Card -->
+    <div class="card">
+      <form id="booking-form" novalidate>
+
+        <div class="form-grid">
+
+          <!-- Name -->
+          <div class="field">
+            <label for="name">Full Name</label>
+            <div class="input-wrap">
+              <input type="text" id="name" placeholder="Jane Doe" autocomplete="name" />
+              <i class="fa-regular fa-user ico"></i>
+            </div>
+            <span class="field-err" id="name-err" style="display:none"><i class="fa-solid fa-circle-exclamation"></i> <span></span></span>
+          </div>
+
+          <!-- Email -->
+          <div class="field">
+            <label for="email">Email Address</label>
+            <div class="input-wrap">
+              <input type="email" id="email" placeholder="jane@example.com" autocomplete="email" />
+              <i class="fa-regular fa-envelope ico"></i>
+            </div>
+            <span class="field-err" id="email-err" style="display:none"><i class="fa-solid fa-circle-exclamation"></i> <span></span></span>
+          </div>
+
+          <!-- Exam -->
+          <div class="field full">
+            <label for="exam">Select Exam</label>
+            <div class="input-wrap">
+              <select id="exam">
+                <option value="" disabled selected>Choose a course…</option>
+                <option value="Java Programming">Java Programming</option>
+                <option value="Python Fundamentals">Python Fundamentals</option>
+                <option value="Web Development">Web Development</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Database Management">Database Management</option>
+                <option value="Cloud Computing">Cloud Computing</option>
+                <option value="Cybersecurity Basics">Cybersecurity Basics</option>
+              </select>
+              <i class="fa-solid fa-book ico"></i>
+            </div>
+            <span class="field-err" id="exam-err" style="display:none"><i class="fa-solid fa-circle-exclamation"></i> <span></span></span>
+          </div>
+
+          <!-- Date -->
+          <div class="field full">
+            <label for="date">Exam Date</label>
+            <div class="input-wrap">
+              <input type="date" id="date" />
+              <i class="fa-regular fa-calendar ico"></i>
+            </div>
+            <span class="field-err" id="date-err" style="display:none"><i class="fa-solid fa-circle-exclamation"></i> <span></span></span>
+          </div>
+
+        </div>
+
+        <!-- Time Slots -->
+        <div style="margin-top: 1.1rem;">
+          <p class="slots-label">Select Time Slot</p>
+          <div class="slots">
+            <label class="slot-btn">
+              <input type="radio" name="slot" value="Morning (9–11 AM)" />
+              <span><i class="fa-regular fa-sun"></i>Morning<small style="font-size:10px;opacity:0.7">9 – 11 AM</small></span>
+            </label>
+            <label class="slot-btn">
+              <input type="radio" name="slot" value="Afternoon (2–4 PM)" />
+              <span><i class="fa-solid fa-cloud-sun"></i>Afternoon<small style="font-size:10px;opacity:0.7">2 – 4 PM</small></span>
+            </label>
+            <label class="slot-btn">
+              <input type="radio" name="slot" value="Evening (6–8 PM)" />
+              <span><i class="fa-regular fa-moon"></i>Evening<small style="font-size:10px;opacity:0.7">6 – 8 PM</small></span>
+            </label>
+          </div>
+          <span class="field-err" id="slot-err" style="display:none"><i class="fa-solid fa-circle-exclamation"></i> <span></span></span>
+        </div>
+
+        <div style="margin-top: 1.6rem;">
+          <button type="submit" class="btn-submit">
+            <i class="fa-solid fa-circle-check"></i> Book Now
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Bookings List -->
+    <div class="divider"><span>Your Bookings</span></div>
+
+    <div id="bookings-section">
+      <div class="bookings-header">
+        <span style="font-size:13px;font-weight:500;color:var(--muted)">Confirmed reservations</span>
+        <span class="bookings-count" id="bookings-count">0</span>
+      </div>
+      <div id="bookings-list"></div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── Utilities ── */
+
+    // Set min date to today on the date picker
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+
+    // Exam icon mapping
+    const examIcons = {
+      'Java Programming':      { cls: 'java',    icon: 'fa-brands fa-java' },
+      'Python Fundamentals':   { cls: 'python',  icon: 'fa-brands fa-python' },
+      'Web Development':       { cls: 'web',     icon: 'fa-solid fa-code' },
+      'Data Science':          { cls: 'ds',      icon: 'fa-solid fa-chart-line' },
+      'Database Management':   { cls: 'db',      icon: 'fa-solid fa-database' },
+      'Cloud Computing':       { cls: 'default', icon: 'fa-solid fa-cloud' },
+      'Cybersecurity Basics':  { cls: 'default', icon: 'fa-solid fa-shield-halved' },
+    };
+
+    /* ── LocalStorage helpers ── */
+    const STORE_KEY = 'examslot_bookings';
+
+    function loadBookings() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveBookings(list) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    }
+
+    /* ── Toast ── */
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> ${msg}`;
+      t.style.display = 'flex';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.classList.add('hide');
+        setTimeout(() => { t.style.display = 'none'; t.classList.remove('hide'); }, 350);
+      }, 3200);
+    }
+
+    /* ── Field validation ── */
+    function showErr(fieldId, msg) {
+      const el = document.getElementById(fieldId);
+      if (el) {
+        el.style.display = 'flex';
+        el.querySelector('span').textContent = msg;
+      }
+    }
+
+    function clearErr(fieldId) {
+      const el = document.getElementById(fieldId);
+      if (el) el.style.display = 'none';
+    }
+
+    function markInput(id, hasErr) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('error', hasErr);
+    }
+
+    function validateForm(data) {
+      let valid = true;
+      ['name','email','exam','date','slot'].forEach(f => { clearErr(f+'-err'); markInput(f, false); });
+
+      if (!data.name.trim()) {
+        showErr('name-err', 'Please enter your full name.'); markInput('name', true); valid = false;
+      }
+
+      const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!data.email.trim()) {
+        showErr('email-err', 'Email address is required.'); markInput('email', true); valid = false;
+      } else if (!emailRx.test(data.email)) {
+        showErr('email-err', 'Enter a valid email address.'); markInput('email', true); valid = false;
+      }
+
+      if (!data.exam) {
+        showErr('exam-err', 'Please select an exam.'); markInput('exam', true); valid = false;
+      }
+
+      if (!data.date) {
+        showErr('date-err', 'Please pick an exam date.'); markInput('date', true); valid = false;
+      } else if (data.date < today) {
+        showErr('date-err', 'Date cannot be in the past.'); markInput('date', true); valid = false;
+      }
+
+      if (!data.slot) {
+        showErr('slot-err', 'Select a time slot to continue.'); valid = false;
+      }
+
+      return valid;
+    }
+
+    /* ── Render bookings list ── */
+    function renderBookings() {
+      const list = loadBookings();
+      const container = document.getElementById('bookings-list');
+      document.getElementById('bookings-count').textContent = list.length;
+
+      if (!list.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-regular fa-calendar-xmark"></i>
+            <p>No bookings yet.<br>Fill out the form above to reserve your slot.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = list.map((b, i) => {
+        const meta = examIcons[b.exam] || { cls: 'default', icon: 'fa-solid fa-file-alt' };
+        const dateStr = new Date(b.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `
+          <div class="booking-item" id="item-${i}">
+            <div class="booking-icon ${meta.cls}"><i class="${meta.icon}"></i></div>
+            <div class="booking-info">
+              <div class="booking-name">${escHtml(b.name)}</div>
+              <div class="booking-exam">${escHtml(b.exam)}</div>
+              <div class="booking-meta">
+                <span><i class="fa-regular fa-envelope"></i>${escHtml(b.email)}</span>
+                <span><i class="fa-regular fa-calendar"></i>${dateStr}</span>
+                <span><i class="fa-regular fa-clock"></i>${escHtml(b.slot)}</span>
+              </div>
+            </div>
+            <button class="btn-delete" onclick="deleteBooking(${i})" title="Cancel booking">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>`;
+      }).join('');
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ── Delete booking ── */
+    function deleteBooking(index) {
+      const list = loadBookings();
+      list.splice(index, 1);
+      saveBookings(list);
+      renderBookings();
+      showToast('Booking cancelled successfully.', 'success');
+    }
+
+    /* ── Form submission ── */
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const slot = document.querySelector('input[name="slot"]:checked');
+      const data = {
+        name:  document.getElementById('name').value,
+        email: document.getElementById('email').value.toLowerCase().trim(),
+        exam:  document.getElementById('exam').value,
+        date:  document.getElementById('date').value,
+        slot:  slot ? slot.value : '',
+      };
+
+      if (!validateForm(data)) return;
+
+      // Duplicate check: same email + date + slot
+      const list = loadBookings();
+      const duplicate = list.find(b =>
+        b.email === data.email && b.date === data.date && b.slot === data.slot
+      );
+
+      if (duplicate) {
+        showToast('You already have a booking for this date and time slot.', 'error');
+        return;
+      }
+
+      // Save
+      list.unshift(data);
+      saveBookings(list);
+      renderBookings();
+
+      showToast(`Booked! Your ${data.exam} exam is confirmed.`, 'success');
+
+      // Reset form
+      this.reset();
+      ['name','email','exam','date'].forEach(id => markInput(id, false));
+      document.querySelectorAll('input[name="slot"]').forEach(r => r.checked = false);
+
+      // Scroll to bookings
+      setTimeout(() => document.getElementById('bookings-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+    });
+
+    // Clear errors on input
+    ['name','email','exam','date'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearErr(id + '-err'); markInput(id, false);
+      });
+    });
+
+    document.querySelectorAll('input[name="slot"]').forEach(r => {
+      r.addEventListener('change', () => clearErr('slot-err'));
+    });
+
+    /* ── Init ── */
+    renderBookings();
+  </script>
+</body>
+</html>
